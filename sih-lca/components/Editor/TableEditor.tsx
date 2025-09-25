@@ -127,7 +127,7 @@ export default function TableEditor(props: TableEditorProps) {
     <div className="bg-gray-900 text-white p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-white">Input parameters</h1>
+          <h1 className="text-2xl font-bold text-white">{props.type}</h1>
           <div className="flex gap-3">
             <button
               onClick={addRow}

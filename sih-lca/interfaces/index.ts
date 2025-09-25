@@ -16,9 +16,9 @@ import z from "zod"
       category: string
   }
   export enum TableType{
-      INPUT,
-      PROCESS,
-      OUTPUT
+      INPUT= "input_params",
+      PROCESS="process_params",
+      OUTPUT="output_params"
   }
   export type InputParams = z.infer<typeof InputParamSchema> 
   export type OutputParams = z.infer<typeof OutputParamSchema>

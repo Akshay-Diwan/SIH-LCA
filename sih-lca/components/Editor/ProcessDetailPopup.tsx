@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, ChevronDown, Database, FileText, Filter, Plus, Edit, Trash2 } from 'lucide-react';
 import { NodeData, TableType } from '@/interfaces/index';
 import TableEditor from './TableEditor';
+import DropdownInput from './DropdownInput';
 
 interface Column {
   name: string;
@@ -22,7 +23,7 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
   data
 },
 ) => {
-  const [selectedTable, setSelectedTable] = useState<'output' | 'input'>('input');
+  const [selectedTable, setSelectedTable] = useState<TableType>(TableType.INPUT);
   const [isTableDropdownOpen, setIsTableDropdownOpen] = useState(false);
 
   if (!isOpen) return null;
@@ -64,7 +65,18 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
             <div className="border-b border-gray-700 p-4">
               <h3 className="mb-3 text-sm font-medium text-gray-300">Tables & Views</h3>
               <div className="relative">
-                <button
+                <DropdownInput
+                   name='Table'
+                   options={[
+                    { value: TableType.INPUT, label: 'Input Parameters'},
+                    {value: TableType.PROCESS, label: 'Process Parameters'},
+                    {value: TableType.OUTPUT, label: 'Output Parameters'}
+                  ]}
+                  defaultValue='input_params'
+                  onChange={(value)=> setSelectedTable(value)}
+
+                />
+                {/* <button
                   onClick={() => setIsTableDropdownOpen(!isTableDropdownOpen)}
                   className="flex w-full items-center justify-between rounded-md bg-gray-800 px-3 py-2 text-left hover:bg-gray-700 transition-colors"
                 >
@@ -75,14 +87,17 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
                   <div className="absolute top-full left-0 right-0 z-10 mt-1 rounded-md bg-gray-800 border border-gray-600 shadow-lg">
                     <div className="py-1">
                       <button className="block w-full px-3 py-2 text-left text-sm hover:bg-gray-700 transition-colors">
-                        input
+                        input params
                       </button>
                       <button className="block w-full px-3 py-2 text-left text-sm text-gray-400 hover:bg-gray-700 transition-colors">
-                        output
+                        output params
+                      </button>
+                       <button className="block w-full px-3 py-2 text-left text-sm text-gray-400 hover:bg-gray-700 transition-colors">
+                        process params
                       </button>
                     </div>
                   </div>
-                )}
+                )} */}
               </div>
             </div>
 
@@ -110,7 +125,7 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
               </div>
 
               {/* Columns */}
-              <TableEditor type={TableType.INPUT}/>
+              <TableEditor type={selectedTable}/>
               {/* <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-300 mb-3">Columns</h4>
                 <div className="space-y-3">

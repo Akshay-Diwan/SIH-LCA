@@ -66,10 +66,10 @@ export const InputParamSchema = z.object({
 // ---------------- Process Params ----------------
 export const ProcessParamSchema = z.object({
   id: z.number().int().optional(),
-  process_id: z.number().int(),
-  name: z.string().min(1),
-  value: z.number(),
-  unit: z.string().nullable().optional(),
+  process_id: z.number().int().default(2),
+  name: z.string().min(1).default("extraction"),
+  value: z.number().default(1),
+  unit: z.string().nullable().optional().default("kWt"),
   description: z.string().nullable().optional(),
   uncertainty_low: z.number().nullable().optional(),
   uncertainty_high: z.number().nullable().optional(),
@@ -80,11 +80,11 @@ export const ProcessParamSchema = z.object({
 // ---------------- Output Params ----------------
 export const OutputParamSchema = z.object({
   id: z.number().int().optional(),
-  process_id: z.number().int(),
-  type: z.enum(["product", "co-product", "emission_air", "emission_water", "waste"]),
-  name: z.string().min(1),
-  amount: z.number(),
-  unit: z.string().min(1),
+  process_id: z.number().int().default(2),
+  type: z.enum(["product", "co-product", "emission_air", "emission_water", "waste"]).default("product"),
+  name: z.string().min(1).default("Aluminium"),
+  amount: z.number().default(1),
+  unit: z.string().min(1).default("kg"),
   location: z.string().nullable().optional(),
   source: z.string().nullable().optional(),
   uncertainty_low: z.number().nullable().optional(),
