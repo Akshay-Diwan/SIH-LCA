@@ -1,4 +1,4 @@
-import { InputParamSchema, OutputParamSchema, ProcessParamSchema } from "@/lib/schemas/schema"
+import { InputParamSchema, OutputParamSchema, ProcessParamSchema, ProcessSchema, ProductSystemSchema } from "@/lib/schemas/schema"
 import z from "zod"
 
   export interface NodeData{
@@ -16,11 +16,13 @@ import z from "zod"
       category: string
   }
   export enum TableType{
-      INPUT= "input_params",
+      INPUT="input_params",
       PROCESS="process_params",
       OUTPUT="output_params"
   }
   export type InputParams = z.infer<typeof InputParamSchema> 
   export type OutputParams = z.infer<typeof OutputParamSchema>
   export type ProcessParams = z.infer<typeof ProcessParamSchema>
+  export type Process = z.infer<typeof ProcessSchema>
+  export type ProductSystem = z.infer<typeof ProductSystemSchema>
   

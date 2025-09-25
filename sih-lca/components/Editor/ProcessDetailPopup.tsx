@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, ChevronDown, Database, FileText, Filter, Plus, Edit, Trash2 } from 'lucide-react';
-import { NodeData, TableType } from '@/interfaces/index';
+import { NodeData, Process, TableType } from '@/interfaces/index';
 import TableEditor from './TableEditor';
 import DropdownInput from './DropdownInput';
 
@@ -14,13 +14,13 @@ interface Column {
 interface SidePopupProps {
   isOpen: boolean;
   onClose: () => void;
-  data?: NodeData
+  processData: Process
 }
 
 const ProcessDetailPopup: React.FC<SidePopupProps> = ({ 
   isOpen, 
   onClose, 
-  data
+  processData
 },
 ) => {
   const [selectedTable, setSelectedTable] = useState<TableType>(TableType.INPUT);

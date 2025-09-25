@@ -1,5 +1,9 @@
-import React, {useState} from 'react'
-import { ChevronRight, ChevronDown, File, Folder, FolderOpen } from 'lucide-react';
+import React, {useEffect, useState} from 'react'
+import { ChevronRight, ChevronDown, File, Folder, FolderOpen, Plus, Check, Cross, CrossIcon, X } from 'lucide-react';
+import { ProductSystem,Process } from '@/interfaces';
+import { ProductSystemSchema } from '@/lib/schemas/schema';
+import { GetAllProductSystems, SaveProductSystem } from '@/lib/actions/productSystem.actions';
+import { toast } from 'sonner';
 
 
 interface FileNode {
@@ -85,24 +89,33 @@ const mockFileStructure: FileNode[] = [
   { name: 'next.config.js', type: 'file', path: '/next.config.js' },
   { name: 'README.md', type: 'file', path: '/README.md' }
 ];
-
-const FileTreeItem: React.FC<FileTreeItemProps> = ({ node, level, onFileSelect }) => {
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
-
-  const handleToggle = () => {
-    if (node.type === 'folder') {
-      setIsExpanded(!isExpanded);
-    } else {
-      onFileSelect(node.path);
-    }
-  };
-
-  const getFileIcon = (fileName: string) => {
+interface ProductSystemItemProps{
+  productSystem: ProductSystem
+}
+interface ProcessItemProps{
+  process: Process
+}
+const ProcessItem = ({process}: ProcessItemProps) => {
+    const getFileIcon = (fileName: string) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
     return <File className="w-4 h-4 text-gray-400" />;
   };
+   <>
+            <div className="w-5 mr-1 flex-shrink-0" />
+            {getFileIcon(process.name)}
+            <span className="ml-2" />
+    </>
+}
+const ProductSystemItem = ({productSystem}: ProductSystemItemProps) => {
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
-  const paddingLeft = level * 16 + 8;
+  const handleToggle = () => {
+      setIsExpanded(!isExpanded);
+  };
+
+
+
+  const paddingLeft = 24;
 
   return (
     <div>
@@ -111,7 +124,7 @@ const FileTreeItem: React.FC<FileTreeItemProps> = ({ node, level, onFileSelect }
         style={{ paddingLeft: `${paddingLeft}px` }}
         onClick={handleToggle}
       >
-        {node.type === 'folder' ? (
+        {
           <>
             {isExpanded ? (
               <ChevronDown className="w-4 h-4 mr-1 flex-shrink-0" />
@@ -124,17 +137,11 @@ const FileTreeItem: React.FC<FileTreeItemProps> = ({ node, level, onFileSelect }
               <Folder className="w-4 h-4 mr-2 text-blue-400 flex-shrink-0" />
             )}
           </>
-        ) : (
-          <>
-            <div className="w-5 mr-1 flex-shrink-0" />
-            {getFileIcon(node.name)}
-            <span className="ml-2" />
-          </>
-        )}
-        <span className="truncate">{node.name}</span>
+        }
+        <span className="truncate">{productSystem.name}</span>
       </div>
 
-      {node.type === 'folder' && isExpanded && node.children && (
+      {/* {isExpanded && (
         <div>
           {node.children.map((child, index) => (
             <FileTreeItem
@@ -145,15 +152,45 @@ const FileTreeItem: React.FC<FileTreeItemProps> = ({ node, level, onFileSelect }
             />
           ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 };
 
 
 const FolderSidebar = () => {
-     const [selectedFile, setSelectedFile] = useState<string | null>(null);
-
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [creating, setcreating] = useState<boolean>(false)
+  const [productSystems, setProductSystems] = useState<ProductSystem[]>([])
+  const [newName, setNewName] = useState<string>('')
+  useEffect(()=> {
+    GetAllProductSystems(2) 
+    .then((data)=>setProductSystems(data))
+    .catch((err) => {
+      console.log(err?.message)
+      toast("failed to get Product Systems")
+    })
+  },[])
+  const addProductSystem = ()=> {
+      //create a inputbox
+      setcreating(true)
+      //create in db
+  }
+  const abordProductSystem = ()=> {
+    setcreating(false)
+  }
+  const createProductSystem = async(current: ProductSystem) => {
+    setProductSystems(prev => [...prev, current])
+    try{
+      await SaveProductSystem(current)
+    }
+    catch(err){
+      console.log(err)
+      toast("Could not create Product System")
+    }
+    setcreating(false)
+  }
   const handleFileSelect = (path: string) => {
     setSelectedFile(path);
     console.log('Selected file:', path);
@@ -163,20 +200,30 @@ const FolderSidebar = () => {
     {/* Sidebar */}
       <div className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col h-screen shadow-2xl shadow-black">
         {/* Header */}
-        <div className="h-8 bg-gray-900 border-b border-gray-700 flex items-center px-3">
+        <div className="h-8 bg-gray-900 border-b border-gray-700 flex items-center justify-between px-3">
           <span className="text-gray-300 text-xs font-medium uppercase tracking-wider">
             Explorer
           </span>
+          <button className='hover:opacity-60 hover:cursor-pointer' onClick={addProductSystem}><Plus color='gray'/></button>
         </div>
 
         {/* File Tree */}
         <div className="flex-1 overflow-y-auto py-1">
-          {mockFileStructure.map((node, index) => (
-            <FileTreeItem
-              key={`${node.path}-${index}`}
-              node={node}
-              level={0}
-              onFileSelect={handleFileSelect}
+          {
+            creating && 
+          <div className='flex items-center h-6 cursor-pointer hover:bg-gray-700 text-gray-300 text-sm select-none px-[24px]'>
+            <Folder className="w-4 h-4 mr-2 text-blue-400 flex-shrink-0" />
+          <input type="text" placeholder='name' className='text-gray-300 text-sm bg-gray-900 focus:outline-gray-600 focus:outline-2 px-1 max-w-[70%]' value={newName} onChange={(e)=>setNewName(e.target.value)}/>
+          <button className='px-1 hover:bg-gray-800' onClick={()=>createProductSystem(ProductSystemSchema.parse({name: newName}))}><Check size={20} color='gray'/></button>
+          <button className='px-1 hover:bg-gray-800' onClick={abordProductSystem}><X size={20} color='gray'/></button>
+
+          
+          </div>
+          }
+          {productSystems.map((productSystem, index) => (
+            <ProductSystemItem
+              key={`${productSystem.id}-${index}`}
+              productSystem={productSystem}
             />
           ))}
         </div>

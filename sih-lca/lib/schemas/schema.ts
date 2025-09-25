@@ -13,8 +13,8 @@ export const ProjectSchema = z.object({
 // ---------------- Product Systems ----------------
 export const ProductSystemSchema = z.object({
   id: z.number().int().optional(),
-  project_id: z.number().int(),
-  name: z.string().min(1),
+  project_id: z.number().int().default(2),
+  name: z.string().min(1).default('default'),
   description: z.string().nullable().optional(),
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
@@ -23,8 +23,8 @@ export const ProductSystemSchema = z.object({
 // ---------------- Processes (Nodes) ----------------
 export const ProcessSchema = z.object({
   id: z.number().int().optional(),
-  product_system_id: z.number().int(),
-  name: z.string().min(1),
+  product_system_id: z.number().int().default(2),
+  name: z.string().min(1).default('process'),
   description: z.string().nullable().optional(),
   reference_flow: z.string().nullable().optional(),
   location: z.string().nullable().optional(),

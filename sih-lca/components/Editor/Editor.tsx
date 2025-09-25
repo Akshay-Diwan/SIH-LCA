@@ -5,6 +5,7 @@ import TopNavbar from './TopNavbar';
 import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Background, Controls, Panel } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import ToolBar from './ToolBar';
+import { Toaster } from "@/components/ui/sonner"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -12,10 +13,17 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import CustomNode from './CustomNode';
-import { NodeData } from '@/interfaces/index';
+import { NodeData, Process } from '@/interfaces/index';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { SaveProcess } from '@/lib/actions/process.actions';
+import { ProcessSchema } from '@/lib/schemas/schema';
+import { toast } from 'sonner';
+import { Plus, X } from 'lucide-react';
 
 const Editor = () => {
-  const [processData, setProcessData] = useState<NodeData | undefined>() 
+  const [processData, setProcessData] = useState<Process>(ProcessSchema.parse({})) 
+  const [newNodeName, setNewNodeName] = useState<string>('node')
+  const [creating, setCreating] = useState<boolean>(false)
   const handleNodeClick = (data: NodeData)=> {
 
     setIsPopupOpen((prev)=> !prev)
@@ -47,13 +55,20 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
     (params: any) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
     [],
   );
-
-  const addNewNode = (e: any)=> {
+  const initializeNewNode = ()=> {
+    setCreating(true)
+  }
+  const abortNewNode = ()=> {
+    setCreating(false)
+  }
+  const addNewNode = async (e: any)=> {
     const bounds = e.currentTarget.getBoundingClientRect();
     const position = {
       x: e.clientX - bounds.left,
       y: e.clientY - bounds.top,
     };
+    try{
+      await SaveProcess(processData)
     setNodes([...nodes,{
         id: `n${nodes.length + 1}`,
         position: position,
@@ -62,6 +77,11 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
             label: `n${nodes.length + 1}`
         }
     }])
+  }catch(err){
+    console.log(err)
+    toast("Could not create Process")
+  }
+
   }
   return (
     <>
@@ -94,11 +114,23 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
     </div>
     </ContextMenuTrigger>
     <ContextMenuContent>
-    <ContextMenuItem><button onClick={addNewNode}>New Process</button></ContextMenuItem>
+    <ContextMenuItem>
+      {
+        creating?
+        <div className='flex'>
+        <input type="text" placeholder='node name' className='w-[70%]' value={newNodeName} onChange={(e)=> setNewNodeName(e.target.value)}/>
+        <button className='hover:bg-gray-400 px-1' onClick={addNewNode}><Plus color='gray'/></button>
+        <button className='hover:bg-gray-400 px-1' onClick={abortNewNode}><X color='gray'/></button>
+        </div>:
+        <button onClick={initializeNewNode}>New Process</button>
+        
+        
+      }
+      </ContextMenuItem>
   </ContextMenuContent>
     </ContextMenu>
     </div>
-      <ProcessDetailPopup isOpen={isPopupOpen} data={processData} onClose={() => {setIsPopupOpen(false)}}/>
+      <ProcessDetailPopup isOpen={isPopupOpen} processData={processData} onClose={() => {setIsPopupOpen(false)}}/>
         </>
   )
 }
