@@ -7,4 +7,3 @@
   const inputClasses = 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400'
 
   export {themeClasses, cardClasses, inputClasses}
-

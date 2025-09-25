@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, ChevronDown, Database, FileText, Filter, Plus, Edit, Trash2 } from 'lucide-react';
+import { NodeData, TableType } from '@/interfaces/index';
+import TableEditor from './TableEditor';
 
 interface Column {
   name: string;
@@ -11,27 +13,16 @@ interface Column {
 interface SidePopupProps {
   isOpen: boolean;
   onClose: () => void;
-  tableName?: string;
-  columns?: Column[];
+  data?: NodeData
 }
 
 const ProcessDetailPopup: React.FC<SidePopupProps> = ({ 
   isOpen, 
   onClose, 
-  tableName = "companions",
-  columns = [
-    { name: "id", format: "uuid", type: "string" },
-    { name: "created_at", format: "timestamp with time zone", type: "string" },
-    { name: "name", format: "character varying", type: "string" },
-    { name: "subject", format: "character varying", type: "string" },
-    { name: "topic", format: "character varying", type: "string" },
-    { name: "style", format: "character varying", type: "string" },
-    { name: "voice", format: "character varying", type: "string" },
-    { name: "duration", format: "bigint", type: "number" },
-    { name: "author", format: "character varying", type: "string" }
-  ]
-}) => {
-  const [selectedTable, setSelectedTable] = useState(tableName);
+  data
+},
+) => {
+  const [selectedTable, setSelectedTable] = useState<'output' | 'input'>('input');
   const [isTableDropdownOpen, setIsTableDropdownOpen] = useState(false);
 
   if (!isOpen) return null;
@@ -58,7 +49,8 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
         <div className="flex h-full flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-700 p-4">
-            <h2 className="text-lg font-semibold">Process Name</h2>
+            <input type="text" placeholder='Process Name' className='bg-gray-800 py-1 px-2 focus:outline-0'/>
+            {/* <h2 className="text-lg font-semibold">Process Name</h2> */}
             <button
               onClick={onClose}
               className="rounded-md p-1 hover:bg-gray-700 transition-colors"
@@ -113,12 +105,13 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
             {/* Table Info */}
             <div className="p-4">
               <div className="mb-4">
-                <h3 className="text-lg font-semibold">{tableName}</h3>
+                <h3 className="text-lg font-semibold">{selectedTable}</h3>
                 <p className="text-sm text-gray-400 mt-1">No description available</p>
               </div>
 
               {/* Columns */}
-              <div className="mb-6">
+              <TableEditor type={TableType.INPUT}/>
+              {/* <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-300 mb-3">Columns</h4>
                 <div className="space-y-3">
                   <div className="grid grid-cols-4 gap-2 text-xs font-medium text-gray-400 pb-2 border-b border-gray-700">
@@ -127,16 +120,16 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
                     <span>Type</span>
                     <span>Description</span>
                   </div>
-                  {columns.map((column, index) => (
+                  {data?.input_params?.map((input, index) => (
                     <div key={index} className="grid grid-cols-4 gap-2 text-xs py-1">
-                      <span className="text-white">{column.name}</span>
-                      <span className="text-gray-400">{column.format}</span>
-                      <span className="text-gray-400">{column.type}</span>
-                      <span className="text-gray-500">{column.description || '-'}</span>
+                      <span className="text-white">{input.name}</span>
+                      <span className="text-gray-400">{input.category}</span>
+                      <span className="text-gray-400">{input.amount}</span>
+                      <span className="text-gray-500">{input.scale || '-'}</span>
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

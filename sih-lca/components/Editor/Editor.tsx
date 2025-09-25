@@ -11,11 +11,21 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
+import CustomNode from './CustomNode';
+import { NodeData } from '@/interfaces/index';
 
 const Editor = () => {
+  const [processData, setProcessData] = useState<NodeData | undefined>() 
+  const handleNodeClick = (data: NodeData)=> {
+
+    setIsPopupOpen((prev)=> !prev)
+  }
+    const nodeTypes = {
+        processNode: (props: any) => <CustomNode {...props} handleNodeClick={handleNodeClick} />
+    }
     const [isPopupOpen, setIsPopupOpen] = useState(true);
     const initialNodes = [
-  { id: 'n1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
+  { id: 'n1', position: { x: 0, y: 0 }, data: { label: 'Node 1' }, type: 'processNode', },
   { id: 'n2', position: { x: 0, y: 100 }, data: { label: 'Node 2' } },
 ];
 const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
@@ -47,6 +57,7 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
     setNodes([...nodes,{
         id: `n${nodes.length + 1}`,
         position: position,
+        type: 'processNode',
         data: {
             label: `n${nodes.length + 1}`
         }
@@ -55,19 +66,20 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
   return (
     <>
     <TopNavbar/>
-    <div className='w-screen flex min-h-screen bg-gray-900'>
+    <div className='w-screen flex bg-gray-900'>
              
   
 
 <ContextMenu>
     <ContextMenuTrigger>
-    <div className="bg-red-300" style={{ width: '100vw', height: '94vh' }}>
+    <div className="bg-gray-900" style={{ width: '100vw', height: '95vh' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        nodeTypes={nodeTypes}
         fitView>
             <Panel position="top-left">
                 <FolderSidebar/>
@@ -86,7 +98,7 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
   </ContextMenuContent>
     </ContextMenu>
     </div>
-      <ProcessDetailPopup isOpen={isPopupOpen} onClose={() => {setIsPopupOpen(false)}}/>
+      <ProcessDetailPopup isOpen={isPopupOpen} data={processData} onClose={() => {setIsPopupOpen(false)}}/>
         </>
   )
 }
