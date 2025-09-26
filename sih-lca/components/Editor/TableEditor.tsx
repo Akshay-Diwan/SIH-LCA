@@ -5,26 +5,6 @@ import { TableType } from '@/interfaces/index';
 import { InputParamSchema, OutputParamSchema, ProcessParamSchema } from '@/lib/schemas/schema';
 import { SaveInTable } from '@/lib/actions/table.actions';
 
-// Zod schema for validation
-// const TableRowSchema = z.object({
-//   id: z.string(),
-//   name: z.string().min(1, 'Name is required').trim(),
-//   email: z.string().email('Invalid email format').min(1, 'Email is required'),
-//   role: z.string().min(1, 'Role is required'),
-// });
-
-// const TableDataSchema = z.array(TableRowSchema);
-
-// Type inference from Zod schema
-// type TableRow = z.infer<typeof TableRowSchema>;
-
-// interface TableRow {
-//   id: string;
-//   name: string;
-//   email: string;
-//   role: string;
-// }
-
 interface ValidationErrors {
   [key: string]: Record<string, string>;
 }

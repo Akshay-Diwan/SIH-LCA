@@ -90,8 +90,8 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
              
   
 
-<ContextMenu>
-    <ContextMenuTrigger>
+{/* <ContextMenu> */}
+    {/* <ContextMenuTrigger> */}
     <div className="bg-gray-900" style={{ width: '100vw', height: '95vh' }}>
       <ReactFlow
         nodes={nodes}
@@ -112,9 +112,9 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
       </ReactFlow>
  
     </div>
-    </ContextMenuTrigger>
+    {/* </ContextMenuTrigger>
     <ContextMenuContent>
-    <ContextMenuItem>
+    {/* <ContextMenuItem>
       {
         creating?
         <div className='flex'>
@@ -126,9 +126,9 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
         
         
       }
-      </ContextMenuItem>
-  </ContextMenuContent>
-    </ContextMenu>
+      </ContextMenuItem> */}
+  {/* </ContextMenuContent> */}
+    {/* </ContextMenu>  */}
     </div>
       <ProcessDetailPopup isOpen={isPopupOpen} processData={processData} onClose={() => {setIsPopupOpen(false)}}/>
         </>

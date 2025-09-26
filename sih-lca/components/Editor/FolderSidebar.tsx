@@ -1,9 +1,10 @@
-import React, {useEffect, useState} from 'react'
+import React, {ReactNode, useEffect, useState} from 'react'
 import { ChevronRight, ChevronDown, File, Folder, FolderOpen, Plus, Check, Cross, CrossIcon, X } from 'lucide-react';
 import { ProductSystem,Process } from '@/interfaces';
 import { ProductSystemSchema } from '@/lib/schemas/schema';
 import { GetAllProductSystems, SaveProductSystem } from '@/lib/actions/productSystem.actions';
 import { toast } from 'sonner';
+import { GetAllProcesses } from '@/lib/actions/process.actions';
 
 
 interface FileNode {
@@ -90,7 +91,8 @@ const mockFileStructure: FileNode[] = [
   { name: 'README.md', type: 'file', path: '/README.md' }
 ];
 interface ProductSystemItemProps{
-  productSystem: ProductSystem
+  productSystem: ProductSystem,
+  processes: Process[]
 }
 interface ProcessItemProps{
   process: Process
@@ -100,13 +102,17 @@ const ProcessItem = ({process}: ProcessItemProps) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
     return <File className="w-4 h-4 text-gray-400" />;
   };
+  return(
    <>
-            <div className="w-5 mr-1 flex-shrink-0" />
+            <div className="flex items-center h-6 cursor-pointer hover:bg-gray-700 text-gray-300 text-sm select-none pl-[40px]">
             {getFileIcon(process.name)}
             <span className="ml-2" />
+            <span>{process.name}</span>
+            </div>
     </>
+  )
 }
-const ProductSystemItem = ({productSystem}: ProductSystemItemProps) => {
+const ProductSystemItem = ({productSystem, processes}: ProductSystemItemProps) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   const handleToggle = () => {
@@ -141,18 +147,16 @@ const ProductSystemItem = ({productSystem}: ProductSystemItemProps) => {
         <span className="truncate">{productSystem.name}</span>
       </div>
 
-      {/* {isExpanded && (
+      {isExpanded && (
         <div>
-          {node.children.map((child, index) => (
-            <FileTreeItem
-              key={`${child.path}-${index}`}
-              node={child}
-              level={level + 1}
-              onFileSelect={onFileSelect}
+          {processes.map((process, index) => (
+            <ProcessItem
+              key={`${process.id}-${index}`}
+              process={process}
             />
           ))}
         </div>
-      )} */}
+      )}
     </div>
   );
 };
@@ -163,14 +167,28 @@ const FolderSidebar = () => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [creating, setcreating] = useState<boolean>(false)
   const [productSystems, setProductSystems] = useState<ProductSystem[]>([])
+  const [processes, setProcesses] = useState<Process[]>([])
   const [newName, setNewName] = useState<string>('')
   useEffect(()=> {
     GetAllProductSystems(2) 
-    .then((data)=>setProductSystems(data))
+    .then((systems)=>{
+      setProductSystems(systems)
+      console.log("Systems")
+      console.log(systems)
+      return Promise.all(
+        // @ts-expect-error
+        systems.map((ps)=> GetAllProcesses(ps.id))
+      )
+  })
+  .then((allProcesses)=> {
+    const flat = allProcesses.flat()
+    setProcesses(flat)
+  })
     .catch((err) => {
       console.log(err?.message)
       toast("failed to get Product Systems")
     })
+    
   },[])
   const addProductSystem = ()=> {
       //create a inputbox
@@ -198,6 +216,10 @@ const FolderSidebar = () => {
   return (
     <>
     {/* Sidebar */}
+            <div className='text-white w-10 h-10 bg-red-500'>
+              proccess: 
+              {String(processes[0])}
+        </div>
       <div className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col h-screen shadow-2xl shadow-black">
         {/* Header */}
         <div className="h-8 bg-gray-900 border-b border-gray-700 flex items-center justify-between px-3">
@@ -224,9 +246,11 @@ const FolderSidebar = () => {
             <ProductSystemItem
               key={`${productSystem.id}-${index}`}
               productSystem={productSystem}
+              processes={processes.filter(process=> process.product_system_id === productSystem.id)}
             />
           ))}
         </div>
+
       </div>
     </>
   )

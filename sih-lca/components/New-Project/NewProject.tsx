@@ -8,7 +8,6 @@ import SearchBar from './SearchBar'
 const NewProject = () => {
   return (
     <div className='w-screen flex flex-col justify-center items-center min-h-screen bg-gray-900 pt-30'>
-
     <GradientButton>Create From Scratch</GradientButton>
 
     <hr className='bg-white text-white h-10'/>
