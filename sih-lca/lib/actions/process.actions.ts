@@ -20,6 +20,16 @@ export const GetAllProcesses = async (product_system_id: number): Promise<Proces
     }
     return data
 }
+export const GetOneProcess = async (process_id: number)=> {
+    const supabase = createSupabaseClient()
+    const {data, error} = await supabase.from('processes')
+    .select()
+    .eq('id', process_id)
+    if(error || !data){
+        throw new Error(error?.message || 'Failed to get Process')
+    }
+    return data
+}
 export const DeleteProcesses = async (process_ids: number[]) => {
     const supabase = createSupabaseClient()
     console.log("process_ids")

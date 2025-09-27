@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, ChevronDown, Database, FileText, Filter, Plus, Edit, Trash2 } from 'lucide-react';
 import { NodeData, Process, TableType } from '@/interfaces/index';
 import TableEditor from './TableEditor';
 import DropdownInput from './DropdownInput';
+import { GetOneProcess } from '@/lib/actions/process.actions';
 
 interface Column {
   name: string;
@@ -14,19 +15,19 @@ interface Column {
 interface SidePopupProps {
   isOpen: boolean;
   onClose: () => void;
-  processData: Process
+  currentProcessid : number
 }
 
 const ProcessDetailPopup: React.FC<SidePopupProps> = ({ 
   isOpen, 
   onClose, 
-  processData
+  currentProcessid
 },
 ) => {
   const [selectedTable, setSelectedTable] = useState<TableType>(TableType.INPUT);
   const [isTableDropdownOpen, setIsTableDropdownOpen] = useState(false);
+  const [process, setProcess] = useState<Process>({id: 32})
 
-  if (!isOpen) return null;
 
   const operations = [
     { name: "Read rows", icon: Database },
@@ -36,7 +37,15 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
     { name: "Delete rows", icon: Trash2 },
     { name: "Subscribe to changes", icon: Database }
   ];
-
+  useEffect(()=>{
+    GetOneProcess(Number(currentProcessid))
+    .then((data)=>{
+      console.log("Data...")
+      console.log(data)
+      setProcess(data[0])
+  })
+  },[currentProcessid])
+    if (!isOpen) return null;
   return (
     <div className="inset-0 flex fixed">
       {/* Backdrop */}
@@ -50,7 +59,7 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
         <div className="flex h-full flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-700 p-4">
-            <input type="text" placeholder='Process Name' className='bg-gray-800 py-1 px-2 focus:outline-0'/>
+            <input type="text" placeholder='Process Name' className='bg-gray-800 py-1 px-2 focus:outline-0' value={process?.name} disabled={true}/>
             {/* <h2 className="text-lg font-semibold">Process Name</h2> */}
             <button
               onClick={onClose}
@@ -125,7 +134,7 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
               </div>
 
               {/* Columns */}
-              <TableEditor type={selectedTable}/>
+              <TableEditor type={selectedTable} process_id={Number(process.id)}/>
               {/* <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-300 mb-3">Columns</h4>
                 <div className="space-y-3">

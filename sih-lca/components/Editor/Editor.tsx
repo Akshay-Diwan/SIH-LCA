@@ -13,11 +13,12 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import CustomNode from './CustomNode';
-import { NodeData, Process } from '@/interfaces/index';
+import { NodeData, Process, ProcessLink } from '@/interfaces/index';
 import { DeleteProcesses, SaveProcess, UpdatePositions } from '@/lib/actions/process.actions';
 import { ProcessSchema } from '@/lib/schemas/schema';
 import { toast } from 'sonner';
 import { Plus, X } from 'lucide-react';
+import { CreateEdges, DeleteEdges, GetAllEdges } from '@/lib/actions/processLinks.actions';
 
 const Editor = () => {
       const initialNodes = [
@@ -26,19 +27,23 @@ const Editor = () => {
 ];
 const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
   const [processes, setProcesses] = useState<Process[]>([])
-  const [processData, setProcessData] = useState<Process>(ProcessSchema.parse({})) 
+  const [currentProcessId, setCurrentProcessId] = useState<number>(32)
+  const [processLink, setProcessLink] = useState<ProcessLink[]>([])
   const [newNodeName, setNewNodeName] = useState<string>('node')
   const [creating, setCreating] = useState<boolean>(false)
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
-  const handleNodeClick = (data: NodeData)=> {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const handleNodeClick = (id:number)=> {
+    console.log("Mei yaha puch gaya")
+    setCurrentProcessId(id)
     setIsPopupOpen((prev)=> !prev)
   }
     const nodeTypes = {
        // @ts-expect-error
         processNode: (props) => <CustomNode node={props} handleNodeClick={handleNodeClick} />
     }
-    const [isPopupOpen, setIsPopupOpen] = useState(true);
+
 
   const onNodesChange = useCallback(
     (changes: any) => setNodes((nodesSnapshot) => {
@@ -76,8 +81,14 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
     [],
   );
   const onEdgesChange = useCallback(
-    (changes: any) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
-    [],
+    (changes: any) => {
+     setEdges((edgesSnapshot) => {
+      console.log("Edges..")
+       console.log(edges)
+      return applyEdgeChanges(changes, edgesSnapshot)
+})
+    },
+    []
   );
   const onConnect = useCallback(
     (params: any) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
@@ -93,11 +104,20 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
     const existing_ids = nodes.map(node => node.id)
     const deletedProcesses = processes.filter(process => !existing_ids.includes(String(process.id)))
     const deleted_ids = deletedProcesses.map((process) => process.id)
+
     if(deleted_ids && deleted_ids.length > 0){
       await DeleteProcesses(deleted_ids)
     }
     await UpdatePositions(nodes)
-
+    const existing_edge_ids = edges.map(edge => edge.id)
+    const exsting_on_db = processLink.map(processLink => processLink.id)
+    const deletedEdges = processLink.filter(link => !existing_ids.includes(String(link.id)))
+    if(deletedEdges.length > 0) {
+      await DeleteEdges(deletedEdges)
+    }
+    if(edges.length > 0){
+      await CreateEdges(edges)
+    }
     toast("saved successfully")
 
   }
@@ -134,6 +154,28 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
       type: 'processNode'
       }
     })
+    const processes_id = processes.map(process => process.id)
+    console.log("Processessss.sssss")
+    console.log(processes)
+    // @ts-expect-error
+     GetAllEdges(processes_id)
+    .then(
+      (edgesData) =>{
+    setProcessLink(edgesData)
+    const formatEdges = edgesData.map(edge =>{ return {
+      id: String(edge.id),
+      source: String(edge.source),
+      target: String(edge.target),
+      sourceHandle: edge.sourceHandle,
+      targetHandle: edge.targetHandle
+    }})
+    setEdges(formatEdges)
+  }
+  )
+  .catch((err)=>{
+    console.log(err)
+    toast('error occured')
+  })
     // @ts-expect-error
     setNodes(data)
   },[processes])
@@ -188,7 +230,7 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
   {/* </ContextMenuContent> */}
     {/* </ContextMenu>  */}
     </div>
-      <ProcessDetailPopup isOpen={isPopupOpen} processData={processData} onClose={() => {setIsPopupOpen(false)}}/>
+      <ProcessDetailPopup isOpen={isPopupOpen} currentProcessid = {currentProcessId} onClose={() => {setIsPopupOpen(false)}}/>
         </>
   )
 }

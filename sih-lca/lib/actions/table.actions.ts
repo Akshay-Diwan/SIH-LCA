@@ -19,7 +19,7 @@ import { InputParamSchema } from "@/lib/schemas/schema";
 // }
 export const SaveInTable = async (process_id:number ,row: any, type: TableType )=> {
     const supabase = createSupabaseClient()
-    await supabase.from('input_params')
+    await supabase.from(type)
     .delete()
     .eq('process_id',process_id)
     
@@ -28,6 +28,17 @@ export const SaveInTable = async (process_id:number ,row: any, type: TableType )
         throw new Error(error?.message || 'Failed to save data')
     }
 } 
+export const GetTable = async (process_id: number, type: TableType)=>{
+    console.log("inside Get Table")
+    const supabase =createSupabaseClient()
+    const {error, data} = await supabase.from(type)
+    .select()
+    .eq('process_id', process_id)
+    if(error) {
+        throw new Error(error?.message || `Could not get ${type}`)
+    }
+    return data
+}
 // export const getAllCompanion = async ({limit = 10, page = 1, subject, topic}:) =>{
 //     const supabase = createSupabaseClient()
 //     console.log("subject : " + subject)

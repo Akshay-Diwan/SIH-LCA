@@ -1,4 +1,4 @@
-import { InputParamSchema, OutputParamSchema, ProcessParamSchema, ProcessSchema, ProductSystemSchema, ProjectSchema } from "@/lib/schemas/schema"
+import { InputParamSchema, OutputParamSchema, ProcessLinkSchema, ProcessParamSchema, ProcessSchema, ProductSystemSchema, ProjectSchema } from "@/lib/schemas/schema"
 import z from "zod"
 
   export interface NodeData{
@@ -31,10 +31,18 @@ import z from "zod"
   },
   type: string
 }
+export interface Edge{
+  id: string,
+  source: string,
+  target: string,
+  sourceHandle: string,
+  targetHandle: string
+}
   export type InputParams = z.infer<typeof InputParamSchema> 
   export type OutputParams = z.infer<typeof OutputParamSchema>
   export type ProcessParams = z.infer<typeof ProcessParamSchema>
   export type Process = z.infer<typeof ProcessSchema>
+  export type ProcessLink = z.infer<typeof ProcessLinkSchema>
   export type ProductSystem = z.infer<typeof ProductSystemSchema>
   export type Project = z.infer<typeof ProjectSchema>
   

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Save, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { TableType } from '@/interfaces/index';
 import { InputParamSchema, OutputParamSchema, ProcessParamSchema } from '@/lib/schemas/schema';
-import { SaveInTable } from '@/lib/actions/table.actions';
+import { GetTable, SaveInTable } from '@/lib/actions/table.actions';
+import { id } from 'zod/locales';
 
 interface ValidationErrors {
   [key: string]: Record<string, string>;
@@ -11,6 +12,7 @@ interface ValidationErrors {
 
 interface TableEditorProps{
     type : TableType,
+    process_id: number,
 }
 export default function TableEditor(props: TableEditorProps) {
   const TableRowSchema =  props.type === TableType.INPUT? InputParamSchema : props.type === TableType.PROCESS? ProcessParamSchema : OutputParamSchema
@@ -23,8 +25,8 @@ export default function TableEditor(props: TableEditorProps) {
 
   const addRow = () => {
     console.log("Default row")
-    console.log(TableRowSchema.parse({}))
-    const newRow: TableRow = TableRowSchema.parse({process_id: 2});
+    console.log(TableRowSchema.parse({id: 2}))
+    const newRow: TableRow = TableRowSchema.parse({process_id: props.process_id});
     setRows([...rows, newRow]);
     setErrors(prev => ({ ...prev, [newRow.process_id]: {} }));
   };
@@ -55,31 +57,26 @@ export default function TableEditor(props: TableEditorProps) {
     }
   };
 
-  const validateAllRows = () => {
-    const newErrors: ValidationErrors = {};
-    let hasErrors = false;
+  // const validateAllRows = () => {
+  //   const newErrors: ValidationErrors = {};
+  //   let hasErrors = false;
 
-    rows.forEach(row => {
-      const result = TableRowSchema.safeParse(row);
-      if (!result.success) {
-        const rowErrors: Record<string, string> = {};
-        newErrors[row.process_id] = rowErrors;
-        hasErrors = true;
-      }
-    });
+  //   rows.forEach(row => {
+  //     const result = TableRowSchema.safeParse(row);
+  //     if (!result.success) {
+  //       const rowErrors: Record<string, string> = {};
+  //       newErrors[row.process_id] = rowErrors;
+  //       hasErrors = true;
+  //     }
+  //   });
 
-    setErrors(newErrors);
-    return !hasErrors;
-  };
+  //   setErrors(newErrors);
+  //   return !hasErrors;
+  // };
 
   const saveToDatabase = async () => {
     if (rows.length === 0) {
       alert('Please add at least one row before saving');
-      return;
-    }
-
-    if (!validateAllRows()) {
-      setSaveStatus('error');
       return;
     }
 
@@ -102,7 +99,11 @@ export default function TableEditor(props: TableEditorProps) {
       setIsLoading(false);
     }
   };
-
+  useEffect(()=> {
+    console.log(props.process_id)
+    GetTable(Number(props.process_id), props.type)
+    .then(data => setRows(data))
+  },[props.process_id, props.type])
   return (
     <div className="bg-gray-900 text-white p-6">
       <div className="max-w-6xl mx-auto">

@@ -43,8 +43,10 @@ export const ProcessSchema = z.object({
 // ---------------- Process Links (Graph Edges) ----------------
 export const ProcessLinkSchema = z.object({
   id: z.number().int().optional(),
-  from_process_id: z.number().int(),
-  to_process_id: z.number().int(),
+  source: z.number().int(),
+  target: z.number().int(),
+  sourceHandle: z.string(),
+  targetHandle: z.string(),
   description: z.string().nullable().optional(),
   created_at: z.date().optional(),
 });
