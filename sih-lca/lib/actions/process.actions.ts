@@ -1,4 +1,4 @@
-import { Process } from "@/interfaces";
+import { Node, Process } from "@/interfaces";
 import { createSupabaseClient } from "../supabase";
 
 
@@ -20,11 +20,17 @@ export const GetAllProcesses = async (product_system_id: number): Promise<Proces
     }
     return data
 }
-export const DeleteProcesses = async (process_ids: string[]) => {
+export const DeleteProcesses = async (process_ids: number[]) => {
     const supabase = createSupabaseClient()
     console.log("process_ids")
-    console.log(Number(process_ids[0]))
+    console.log(process_ids[0])
     process_ids.map(async process_id => await supabase.from('processes').delete().eq('id',Number(process_id) ))
-
-    
+}
+export const UpdatePositions = async (processes: Node[]) => {
+    const supabase = createSupabaseClient()
+    processes.map(
+        async process => {
+            await supabase.from('processes').update({position: process.position}).eq('id', Number(process.id))
+        }
+    )
 }

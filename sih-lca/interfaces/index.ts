@@ -20,6 +20,17 @@ import z from "zod"
       PROCESS="process_params",
       OUTPUT="output_params"
   }
+  export interface Node{
+  id: string,
+  position: {
+    x: number,
+    y: number
+  },
+  data: {
+    label: string
+  },
+  type: string
+}
   export type InputParams = z.infer<typeof InputParamSchema> 
   export type OutputParams = z.infer<typeof OutputParamSchema>
   export type ProcessParams = z.infer<typeof ProcessParamSchema>

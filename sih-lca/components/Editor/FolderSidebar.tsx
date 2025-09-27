@@ -6,94 +6,11 @@ import { GetAllProductSystems, SaveProductSystem } from '@/lib/actions/productSy
 import { toast } from 'sonner';
 import { GetAllProcesses, SaveProcess } from '@/lib/actions/process.actions';
 
-
-interface FileNode {
-  name: string;
-  type: 'file' | 'folder';
-  children?: FileNode[];
-  path: string;
-}
-
-interface FileTreeItemProps {
-  node: FileNode;
-  level: number;
-  onFileSelect: (path: string) => void;
-}
-
-// Mock directory structure - replace with your actual data
-const mockFileStructure: FileNode[] = [
-  {
-    name: 'src',
-    type: 'folder',
-    path: '/src',
-    children: [
-      {
-        name: 'components',
-        type: 'folder',
-        path: '/src/components',
-        children: [
-          { name: 'Header.tsx', type: 'file', path: '/src/components/Header.tsx' },
-          { name: 'Sidebar.tsx', type: 'file', path: '/src/components/Sidebar.tsx' },
-          { name: 'Button.tsx', type: 'file', path: '/src/components/Button.tsx' }
-        ]
-      },
-      {
-        name: 'pages',
-        type: 'folder',
-        path: '/src/pages',
-        children: [
-          { name: 'index.tsx', type: 'file', path: '/src/pages/index.tsx' },
-          { name: 'about.tsx', type: 'file', path: '/src/pages/about.tsx' },
-          {
-            name: 'api',
-            type: 'folder',
-            path: '/src/pages/api',
-            children: [
-              { name: 'users.ts', type: 'file', path: '/src/pages/api/users.ts' },
-              { name: 'auth.ts', type: 'file', path: '/src/pages/api/auth.ts' }
-            ]
-          }
-        ]
-      },
-      {
-        name: 'styles',
-        type: 'folder',
-        path: '/src/styles',
-        children: [
-          { name: 'globals.css', type: 'file', path: '/src/styles/globals.css' },
-          { name: 'Home.module.css', type: 'file', path: '/src/styles/Home.module.css' }
-        ]
-      },
-      {
-        name: 'utils',
-        type: 'folder',
-        path: '/src/utils',
-        children: [
-          { name: 'helpers.ts', type: 'file', path: '/src/utils/helpers.ts' },
-          { name: 'constants.ts', type: 'file', path: '/src/utils/constants.ts' }
-        ]
-      }
-    ]
-  },
-  {
-    name: 'public',
-    type: 'folder',
-    path: '/public',
-    children: [
-      { name: 'favicon.ico', type: 'file', path: '/public/favicon.ico' },
-      { name: 'logo.png', type: 'file', path: '/public/logo.png' }
-    ]
-  },
-  { name: 'package.json', type: 'file', path: '/package.json' },
-  { name: 'tsconfig.json', type: 'file', path: '/tsconfig.json' },
-  { name: 'tailwind.config.js', type: 'file', path: '/tailwind.config.js' },
-  { name: 'next.config.js', type: 'file', path: '/next.config.js' },
-  { name: 'README.md', type: 'file', path: '/README.md' }
-];
 interface ProductSystemItemProps{
   productSystem: ProductSystem,
   processes: Process[],
   setProcesses: React.Dispatch<React.SetStateAction<Process[]>> 
+  SaveEditing: ()=>Promise<void>
 }
 interface ProcessItemProps{
   process: Process
@@ -113,7 +30,7 @@ const ProcessItem = ({process}: ProcessItemProps) => {
     </>
   )
 }
-const ProductSystemItem = ({productSystem, processes, setProcesses}: ProductSystemItemProps) => {
+const ProductSystemItem = ({productSystem, processes, setProcesses, SaveEditing}: ProductSystemItemProps) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [newProcess, setNewProcess] = useState<boolean>(false);
   const [newName, setNewName] = useState<string>('process');
@@ -127,6 +44,7 @@ const ProductSystemItem = ({productSystem, processes, setProcesses}: ProductSyst
   const createProcess = async (process: Process)=> {
         // setProcess(prev => [...prev, current])
     try{
+      await SaveEditing()
       await SaveProcess(process)
     }
     catch(err){
@@ -141,8 +59,6 @@ const ProductSystemItem = ({productSystem, processes, setProcesses}: ProductSyst
     setNewName('')
     setNewProcess(false)
   }
-
-
 
   const paddingLeft = 24;
 
@@ -198,9 +114,10 @@ const ProductSystemItem = ({productSystem, processes, setProcesses}: ProductSyst
 
 interface FolderSidebarProps{
   processes: Process[],
-  setProcesses: React.Dispatch<React.SetStateAction<Process[]>> 
+  setProcesses: React.Dispatch<React.SetStateAction<Process[]>>,
+  SaveEditing: () => Promise<void>
 }
-const FolderSidebar = ({processes, setProcesses}: FolderSidebarProps) => {
+const FolderSidebar = ({processes, setProcesses, SaveEditing}: FolderSidebarProps) => {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [creating, setcreating] = useState<boolean>(false)
@@ -238,6 +155,7 @@ const FolderSidebar = ({processes, setProcesses}: FolderSidebarProps) => {
   const createProductSystem = async(current: ProductSystem) => {
     setProductSystems(prev => [...prev, current])
     try{
+      await SaveEditing()
       await SaveProductSystem(current)
     }
     catch(err){
@@ -281,6 +199,7 @@ const FolderSidebar = ({processes, setProcesses}: FolderSidebarProps) => {
               productSystem={productSystem}
               setProcesses={setProcesses}
               processes={processes.filter(process=> process.product_system_id === productSystem.id)}
+              SaveEditing={SaveEditing}
             />
           ))}
         </div>

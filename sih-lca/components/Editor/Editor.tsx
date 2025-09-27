@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/context-menu"
 import CustomNode from './CustomNode';
 import { NodeData, Process } from '@/interfaces/index';
-import { DeleteProcesses, SaveProcess } from '@/lib/actions/process.actions';
+import { DeleteProcesses, SaveProcess, UpdatePositions } from '@/lib/actions/process.actions';
 import { ProcessSchema } from '@/lib/schemas/schema';
 import { toast } from 'sonner';
 import { Plus, X } from 'lucide-react';
@@ -29,7 +29,6 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
   const [processData, setProcessData] = useState<Process>(ProcessSchema.parse({})) 
   const [newNodeName, setNewNodeName] = useState<string>('node')
   const [creating, setCreating] = useState<boolean>(false)
-  
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
   const handleNodeClick = (data: NodeData)=> {
@@ -45,32 +44,32 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
     (changes: any) => setNodes((nodesSnapshot) => {
         console.log(changes) 
               //  Detect deleted nodes
-        const removedNodeIds = changes
-        .filter((change: any) => change.type === 'remove')
-        .map((change: any) => change.id);
+        // const removedNodeIds = changes
+        // .filter((change: any) => change.type === 'remove')
+        // .map((change: any) => change.id);
 
               // Update 'processes' state
-      if (removedNodeIds.length > 0) {
-        console.log('Removed Nodes')
-        console.log(removedNodeIds)
-           DeleteProcesses(removedNodeIds)
-           .then( 
-           ()=>         
-            setProcesses((prev) =>{
-              console.log("prev nodes")
-             console.log(prev.filter((p) => !removedNodeIds.includes(String(p.id))))
-             return prev.filter((p) => !removedNodeIds.includes(String(p.id)))
-            }
-          )
-         )
-         .catch(err => {
-           console.log(err)
-           toast('Error occured')
-         })
+      // if (removedNodeIds.length > 0) {
+      //   console.log('Removed Nodes')
+      //   console.log(removedNodeIds)
+      //      DeleteProcesses(removedNodeIds)
+      //      .then( 
+      //      ()=>         
+      //       setProcesses((prev) =>{
+      //         console.log("prev nodes")
+      //        console.log(prev.filter((p) => !removedNodeIds.includes(String(p.id))))
+      //        return prev.filter((p) => !removedNodeIds.includes(String(p.id)))
+      //       }
+      //     )
+      //    )
+      //    .catch(err => {
+      //      console.log(err)
+      //      toast('Error occured')
+      //    })
 
 
           
-      }
+      // }
       console.log("Nodes after changes:")
       console.log(nodes)
         return applyNodeChanges(changes, nodesSnapshot)}),
@@ -89,6 +88,18 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
   // }
   const abortNewNode = ()=> {
     setCreating(false)
+  }
+  const SaveEditing = async ()=> {
+    const existing_ids = nodes.map(node => node.id)
+    const deletedProcesses = processes.filter(process => !existing_ids.includes(String(process.id)))
+    const deleted_ids = deletedProcesses.map((process) => process.id)
+    if(deleted_ids && deleted_ids.length > 0){
+      await DeleteProcesses(deleted_ids)
+    }
+    await UpdatePositions(nodes)
+
+    toast("saved successfully")
+
   }
   // const addNewNode = async (e: any)=> {
   //   const bounds = e.currentTarget.getBoundingClientRect();
@@ -146,10 +157,13 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
         selectNodesOnDrag={true}
         fitView>
             <Panel position="top-left">
-                <FolderSidebar processes={processes} setProcesses={setProcesses}/>
+                <FolderSidebar processes={processes} setProcesses={setProcesses} SaveEditing = {SaveEditing}/>
             </Panel>
             <Panel position='bottom-center'>
                 <ToolBar/>
+            </Panel>
+            <Panel position='top-right'>
+              <button className='bg-blue-400 text-gray-300 px-6 py-3 rounded-2xl mx-5 hover:bg-blue-500 hover:cursor-pointer' onClick={SaveEditing}>Save</button>
             </Panel>
       <Background/>
       <Controls/>

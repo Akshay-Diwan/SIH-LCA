@@ -14,8 +14,11 @@ const CustomNode = ({handleNodeClick, node}: CustomNodeProps) => {
   return (
     <div onClick = {handleNodeClick} className='bg-gray-800 w-[170px] h-[50px] text-white flex justify-center items-center border-2 border-purple-500 rounded-2xl'>
         {node.data.label}
+        <Handle type='target' position={Position.Top} id="t"/>
         <Handle type="source" position={Position.Right} id="r"/>
-        <Handle type="source" position={Position.Left} id="l"/>
+        <Handle type="target" position={Position.Left} id="l"/>
+        <Handle type="source" position={Position.Bottom} id="b"/>
+
     </div>
 
   )
