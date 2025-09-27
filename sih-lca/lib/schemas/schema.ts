@@ -34,6 +34,10 @@ export const ProcessSchema = z.object({
   data_source: z.string().nullable().optional(),
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
+  position: z.json().default({
+    x: 0,
+    y: 0
+  })
 });
 
 // ---------------- Process Links (Graph Edges) ----------------

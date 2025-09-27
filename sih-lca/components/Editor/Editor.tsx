@@ -1,4 +1,4 @@
-import React,{useState, useCallback} from 'react'
+import React,{useState, useCallback, useEffect} from 'react'
 import FolderSidebar from './FolderSidebar'
 import ProcessDetailPopup from './ProcessDetailPopup'
 import TopNavbar from './TopNavbar';
@@ -14,36 +14,65 @@ import {
 } from "@/components/ui/context-menu"
 import CustomNode from './CustomNode';
 import { NodeData, Process } from '@/interfaces/index';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { SaveProcess } from '@/lib/actions/process.actions';
+import { DeleteProcesses, SaveProcess } from '@/lib/actions/process.actions';
 import { ProcessSchema } from '@/lib/schemas/schema';
 import { toast } from 'sonner';
 import { Plus, X } from 'lucide-react';
 
 const Editor = () => {
-  const [processData, setProcessData] = useState<Process>(ProcessSchema.parse({})) 
-  const [newNodeName, setNewNodeName] = useState<string>('node')
-  const [creating, setCreating] = useState<boolean>(false)
-  const handleNodeClick = (data: NodeData)=> {
-
-    setIsPopupOpen((prev)=> !prev)
-  }
-    const nodeTypes = {
-        processNode: (props: any) => <CustomNode {...props} handleNodeClick={handleNodeClick} />
-    }
-    const [isPopupOpen, setIsPopupOpen] = useState(true);
-    const initialNodes = [
+      const initialNodes = [
   { id: 'n1', position: { x: 0, y: 0 }, data: { label: 'Node 1' }, type: 'processNode', },
   { id: 'n2', position: { x: 0, y: 100 }, data: { label: 'Node 2' } },
 ];
 const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
-
+  const [processes, setProcesses] = useState<Process[]>([])
+  const [processData, setProcessData] = useState<Process>(ProcessSchema.parse({})) 
+  const [newNodeName, setNewNodeName] = useState<string>('node')
+  const [creating, setCreating] = useState<boolean>(false)
+  
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
- 
+  const handleNodeClick = (data: NodeData)=> {
+    setIsPopupOpen((prev)=> !prev)
+  }
+    const nodeTypes = {
+       // @ts-expect-error
+        processNode: (props) => <CustomNode node={props} handleNodeClick={handleNodeClick} />
+    }
+    const [isPopupOpen, setIsPopupOpen] = useState(true);
+
   const onNodesChange = useCallback(
     (changes: any) => setNodes((nodesSnapshot) => {
         console.log(changes) 
+              //  Detect deleted nodes
+        const removedNodeIds = changes
+        .filter((change: any) => change.type === 'remove')
+        .map((change: any) => change.id);
+
+              // Update 'processes' state
+      if (removedNodeIds.length > 0) {
+        console.log('Removed Nodes')
+        console.log(removedNodeIds)
+           DeleteProcesses(removedNodeIds)
+           .then( 
+           ()=>         
+            setProcesses((prev) =>{
+              console.log("prev nodes")
+             console.log(prev.filter((p) => !removedNodeIds.includes(String(p.id))))
+             return prev.filter((p) => !removedNodeIds.includes(String(p.id)))
+            }
+          )
+         )
+         .catch(err => {
+           console.log(err)
+           toast('Error occured')
+         })
+
+
+          
+      }
+      console.log("Nodes after changes:")
+      console.log(nodes)
         return applyNodeChanges(changes, nodesSnapshot)}),
     [],
   );
@@ -55,34 +84,48 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
     (params: any) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
     [],
   );
-  const initializeNewNode = ()=> {
-    setCreating(true)
-  }
+  // const initializeNewNode = ()=> {
+  //   setCreating(true)
+  // }
   const abortNewNode = ()=> {
     setCreating(false)
   }
-  const addNewNode = async (e: any)=> {
-    const bounds = e.currentTarget.getBoundingClientRect();
-    const position = {
-      x: e.clientX - bounds.left,
-      y: e.clientY - bounds.top,
-    };
-    try{
-      await SaveProcess(processData)
-    setNodes([...nodes,{
-        id: `n${nodes.length + 1}`,
-        position: position,
-        type: 'processNode',
-        data: {
-            label: `n${nodes.length + 1}`
-        }
-    }])
-  }catch(err){
-    console.log(err)
-    toast("Could not create Process")
-  }
+  // const addNewNode = async (e: any)=> {
+  //   const bounds = e.currentTarget.getBoundingClientRect();
+  //   const position = {
+  //     x: 200,
+  //     y: 0
+  //   };
+  //   try{
+  //     await SaveProcess(processData)
+  //   setNodes([...nodes,{
+  //       id: `n${nodes.length + 1}`,
+  //       position: position,
+  //       type: 'processNode',
+  //       data: {
+  //           label: `n${nodes.length + 1}`
+  //       }
+  //   }])
+  // }catch(err){
+  //   console.log(err)
+  //   toast("Could not create Process")
+  // }
 
-  }
+  // }
+  useEffect(()=> {
+    console.log("Process Positions")
+    const data = processes.map(process => {
+      console.log(process.position)
+      return {
+      id: String(process.id),
+      position: process.position,
+      data: {label : process.name},
+      type: 'processNode'
+      }
+    })
+    // @ts-expect-error
+    setNodes(data)
+  },[processes])
   return (
     <>
     <TopNavbar/>
@@ -100,9 +143,10 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
+        selectNodesOnDrag={true}
         fitView>
             <Panel position="top-left">
-                <FolderSidebar/>
+                <FolderSidebar processes={processes} setProcesses={setProcesses}/>
             </Panel>
             <Panel position='bottom-center'>
                 <ToolBar/>

@@ -20,6 +20,20 @@ const Dashboard = () => {
   const {isLoaded, isSignedIn} = useAuth()
   const {user} = useUser()
   const [projects, setProjects] = useState<Project[]>([]);
+  const [latestProject, setLatestProject] = useState<Project>();
+  const findLatest = (data: Project[])=> {
+    let latest = data[0]
+      for (let i = 1; i < data.length; i++) {
+        if(data[i].updated_at && latest.updated_at){
+          console.log(data[i])
+          if(data[i])
+           if(new Date(data[i].updated_at).getTime() > new Date(latest.updated_at).getTime()){
+              latest = data[i]
+          }
+        }
+      }
+        return latest;
+  }
   const repositories = [
     { name: 'WhiteBoard', owner: 'Akshay-Diwan' },
     { name: 'hackathon-banking', owner: 'Akshay-Diwan' },
@@ -64,7 +78,10 @@ const Dashboard = () => {
     useEffect(()=>{
       if(user?.id){
         GetAllProjects(user?.id)
-        .then(data => setProjects(data))
+        .then(data => {
+          setProjects(data)
+          setLatestProject(findLatest(data))
+      })
         .catch((err) => {
           console.log(err)
           toast("failed to fetch projects")
@@ -182,8 +199,8 @@ const Dashboard = () => {
            
           </div>
           {
-            isSignedIn &&
-            <LastChanged/>
+            isSignedIn && latestProject &&
+            <LastChanged latest_project={latestProject}/>
           }
             <Feed isDarkMode={isDarkMode} trendingRepos={trendingRepos}/>
         </main>

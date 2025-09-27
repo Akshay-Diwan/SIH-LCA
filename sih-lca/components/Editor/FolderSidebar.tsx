@@ -1,10 +1,10 @@
 import React, {ReactNode, useEffect, useState} from 'react'
 import { ChevronRight, ChevronDown, File, Folder, FolderOpen, Plus, Check, Cross, CrossIcon, X } from 'lucide-react';
 import { ProductSystem,Process } from '@/interfaces';
-import { ProductSystemSchema } from '@/lib/schemas/schema';
+import { ProcessSchema, ProductSystemSchema } from '@/lib/schemas/schema';
 import { GetAllProductSystems, SaveProductSystem } from '@/lib/actions/productSystem.actions';
 import { toast } from 'sonner';
-import { GetAllProcesses } from '@/lib/actions/process.actions';
+import { GetAllProcesses, SaveProcess } from '@/lib/actions/process.actions';
 
 
 interface FileNode {
@@ -92,7 +92,8 @@ const mockFileStructure: FileNode[] = [
 ];
 interface ProductSystemItemProps{
   productSystem: ProductSystem,
-  processes: Process[]
+  processes: Process[],
+  setProcesses: React.Dispatch<React.SetStateAction<Process[]>> 
 }
 interface ProcessItemProps{
   process: Process
@@ -112,12 +113,34 @@ const ProcessItem = ({process}: ProcessItemProps) => {
     </>
   )
 }
-const ProductSystemItem = ({productSystem, processes}: ProductSystemItemProps) => {
+const ProductSystemItem = ({productSystem, processes, setProcesses}: ProductSystemItemProps) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
-
+  const [newProcess, setNewProcess] = useState<boolean>(false);
+  const [newName, setNewName] = useState<string>('process');
   const handleToggle = () => {
       setIsExpanded(!isExpanded);
   };
+  const addProcess = () => {
+    setIsExpanded(true)
+    setNewProcess(true)
+  }
+  const createProcess = async (process: Process)=> {
+        // setProcess(prev => [...prev, current])
+    try{
+      await SaveProcess(process)
+    }
+    catch(err){
+      console.log(err)
+      toast("Could not create Product System")
+    }
+    setNewProcess(false)
+    setNewName('')
+    setProcesses((prev)=> [...prev, process])
+  }
+  const abordProcess = ()=> {
+    setNewName('')
+    setNewProcess(false)
+  }
 
 
 
@@ -145,8 +168,20 @@ const ProductSystemItem = ({productSystem, processes}: ProductSystemItemProps) =
           </>
         }
         <span className="truncate">{productSystem.name}</span>
+          <button className='hover:opacity-60 hover:cursor-pointer' onClick={addProcess}><Plus color='gray'/></button>
+        
       </div>
+        {
+          isExpanded && newProcess && 
+          <div className='flex items-center h-6 cursor-pointer hover:bg-gray-700 text-gray-300 text-sm select-none px-[24px]'>
+            <Folder className="w-4 h-4 mr-2 text-blue-400 flex-shrink-0" />
+          <input type="text" placeholder='name' className='text-gray-300 text-sm bg-gray-900 focus:outline-gray-600 focus:outline-2 px-1 max-w-[70%]' value={newName} onChange={(e)=>setNewName(e.target.value)}/>
+          <button className='px-1 hover:bg-gray-800' onClick={()=>createProcess(ProcessSchema.parse({name: newName, product_system_id: productSystem.id}))}><Check size={20} color='gray'/></button>
+          <button className='px-1 hover:bg-gray-800' onClick={abordProcess}><X size={20} color='gray'/></button>
 
+          
+          </div>
+        }
       {isExpanded && (
         <div>
           {processes.map((process, index) => (
@@ -161,13 +196,15 @@ const ProductSystemItem = ({productSystem, processes}: ProductSystemItemProps) =
   );
 };
 
-
-const FolderSidebar = () => {
+interface FolderSidebarProps{
+  processes: Process[],
+  setProcesses: React.Dispatch<React.SetStateAction<Process[]>> 
+}
+const FolderSidebar = ({processes, setProcesses}: FolderSidebarProps) => {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [creating, setcreating] = useState<boolean>(false)
   const [productSystems, setProductSystems] = useState<ProductSystem[]>([])
-  const [processes, setProcesses] = useState<Process[]>([])
   const [newName, setNewName] = useState<string>('')
   useEffect(()=> {
     GetAllProductSystems(2) 
@@ -216,10 +253,6 @@ const FolderSidebar = () => {
   return (
     <>
     {/* Sidebar */}
-            <div className='text-white w-10 h-10 bg-red-500'>
-              proccess: 
-              {String(processes[0])}
-        </div>
       <div className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col h-screen shadow-2xl shadow-black">
         {/* Header */}
         <div className="h-8 bg-gray-900 border-b border-gray-700 flex items-center justify-between px-3">
@@ -246,6 +279,7 @@ const FolderSidebar = () => {
             <ProductSystemItem
               key={`${productSystem.id}-${index}`}
               productSystem={productSystem}
+              setProcesses={setProcesses}
               processes={processes.filter(process=> process.product_system_id === productSystem.id)}
             />
           ))}

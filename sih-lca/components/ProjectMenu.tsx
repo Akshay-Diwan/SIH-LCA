@@ -1,5 +1,6 @@
 import { Project } from '@/interfaces'
 import { FolderOpen } from 'lucide-react'
+import Link from 'next/link'
 import React from 'react'
 interface ProjectMenuProps{
   inputClasses: string,
@@ -38,12 +39,14 @@ const ProjectMenu = (props: ProjectMenuProps) => {
                 <>
               <div className="space-y-2">
                 {props.projects.map((repo: Project, index: any) => (
-                  <div key={index} className="flex items-center space-x-2 text-sm">
+                  <div key={index} className="flex items-center space-x-2 text-sm p-1 rounded-sm hover:bg-gray-900">
                     <div className="w-4 h-4 bg-gray-600 rounded-full flex-shrink-0"></div>
+                    <Link href={`project/${repo.id}`}>
                     <span className="truncate">
                       {/* <span className="text-gray-500">{repo.owner}/</span> */}
                       <span className="font-medium">{repo.name}</span>
                     </span>
+                  </Link>
                   </div>
                 ))}
               </div>
