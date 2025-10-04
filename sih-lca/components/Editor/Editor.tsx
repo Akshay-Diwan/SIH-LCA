@@ -19,6 +19,7 @@ import { ProcessSchema } from '@/lib/schemas/schema';
 import { toast } from 'sonner';
 import { Plus, X } from 'lucide-react';
 import { CreateEdges, DeleteEdges, GetAllEdges } from '@/lib/actions/processLinks.actions';
+import { redirect } from 'next/navigation';
 
 const Editor = () => {
       const initialNodes = [
@@ -99,6 +100,9 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
   // }
   const abortNewNode = ()=> {
     setCreating(false)
+  }
+  const Calculate = async ()=> {
+    redirect('/calculations')
   }
   const SaveEditing = async ()=> {
     const existing_ids = nodes.map(node => node.id)
@@ -205,7 +209,9 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
                 <ToolBar/>
             </Panel>
             <Panel position='top-right'>
-              <button className='bg-blue-400 text-gray-300 px-6 py-3 rounded-2xl mx-5 hover:bg-blue-500 hover:cursor-pointer' onClick={SaveEditing}>Save</button>
+              <button className='bg-gray-600 text-gray-300 px-6 py-3 rounded-2xl mx-5 hover:bg-gray-500 hover:cursor-pointer' onClick={Calculate}>Calculate</button>
+              <button className='bg-blue-500 text-gray-300 px-6 py-3 rounded-2xl hover:bg-blue-600 hover:cursor-pointer' onClick={SaveEditing}>Save</button>
+           
             </Panel>
       <Background/>
       <Controls/>

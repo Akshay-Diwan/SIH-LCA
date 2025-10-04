@@ -13,6 +13,7 @@ import { GetAllProjects } from '@/lib/actions/projects.actions';
 import { redirect } from 'next/dist/server/api-utils';
 import { Project } from '@/interfaces';
 import { toast } from 'sonner';
+import Editor from '@/components/Editor/Editor';
 
 const Dashboard = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -109,14 +110,14 @@ const Dashboard = () => {
           </div>
 
           <div className="flex-1 max-w-lg mx-4 hidden md:block">
-            <div className="relative">
+            {/* <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Type / to search"
                 className={`w-full pl-10 pr-4 py-2 rounded-md border ${inputClasses} focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
               />
-            </div>
+            </div> */}
           </div>
 
           <div className="flex items-center space-x-3">
@@ -202,7 +203,7 @@ const Dashboard = () => {
             isSignedIn && latestProject &&
             <LastChanged latest_project={latestProject}/>
           }
-            <Feed isDarkMode={isDarkMode} trendingRepos={trendingRepos}/>
+            {/* <Feed isDarkMode={isDarkMode} trendingRepos={trendingRepos}/> */}
         </main>
       </div>
     </div>

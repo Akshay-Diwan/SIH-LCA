@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { TableType } from '@/interfaces/index';
 import { InputParamSchema, OutputParamSchema, ProcessParamSchema } from '@/lib/schemas/schema';
 import { GetTable, SaveInTable } from '@/lib/actions/table.actions';
-import { id } from 'zod/locales';
 
 interface ValidationErrors {
   [key: string]: Record<string, string>;

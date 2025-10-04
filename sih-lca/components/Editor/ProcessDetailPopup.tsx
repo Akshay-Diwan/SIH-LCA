@@ -4,6 +4,10 @@ import { NodeData, Process, TableType } from '@/interfaces/index';
 import TableEditor from './TableEditor';
 import DropdownInput from './DropdownInput';
 import { GetOneProcess } from '@/lib/actions/process.actions';
+import { useForm } from 'react-hook-form';
+import { DatePicker } from '../Inputs/DatePicker';
+import LocationInput from '../Inputs/LocationInput';
+import EditableTablePopover from './TableEditor2';
 
 interface Column {
   name: string;
@@ -27,8 +31,8 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
   const [selectedTable, setSelectedTable] = useState<TableType>(TableType.INPUT);
   const [isTableDropdownOpen, setIsTableDropdownOpen] = useState(false);
   const [process, setProcess] = useState<Process>({id: 32})
-
-
+  const {register, handleSubmit, formState} = useForm()
+  const {errors, isSubmitting} = formState
   const operations = [
     { name: "Read rows", icon: Database },
     { name: "Filtering", icon: Filter },
@@ -70,6 +74,91 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto">
+
+            {/* Operations */}
+            {/* <div className="border-b border-gray-700 p-4">
+              <div className="space-y-1">
+                {operations.map((operation, index) => (
+                  <button
+                    key={index}
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-gray-800 transition-colors"
+                  >
+                    <operation.icon className="h-4 w-4 text-gray-400" />
+                    {operation.name}
+                  </button>
+                ))}
+              </div>
+
+            </div> */}
+            <div className='border-b border-gray-700 p-4'>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
+                Generate with AI
+              </label>
+              <textarea
+                id="description"
+                {...register("description")}
+                rows={4}
+                className={`w-full px-4 py-3 bg-gray-900 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors duration-200 resize-none ${
+                  errors.description 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : 'border-gray-600 focus:border-blue-500 focus:ring-blue-500'
+                }`}
+                placeholder="Tell us about your process..."
+                disabled={isSubmitting}
+              />
+              {errors.description && (
+                <p className="mt-2 text-sm text-red-400">{String(errors.description)}</p>
+              )}
+            </div>
+            <div className='border-b border-gray-700 p-4'>
+            <DatePicker label='valid from'/>
+            </div>
+            <div className='border-b border-gray-700 p-4'>
+            <DatePicker label='valid till'/>
+            </div>
+
+            <div className='border-b border-gray-700 p-4'>
+              <label htmlFor="reference flow" className="block text-sm font-medium text-gray-300 mb-2">
+                Reference Flow
+              </label>
+              <input
+                type="text"
+                id="reference flow"
+                {...register("reference flow")}
+                className={`w-full px-4 py-3 bg-gray-900 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors duration-200 ${
+                  errors.name 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : 'border-gray-600 focus:border-blue-500 focus:ring-blue-500'
+                }`}
+                placeholder="Example - 1 kg of aluminum ingot"
+                disabled={isSubmitting}
+              />
+              {errors.name && (
+                <p className="mt-2 text-sm text-red-400">{String(errors.name)}</p>
+              )}
+            
+              </div>
+
+            <div className='border-b border-gray-700 p-4'>
+             <label htmlFor="reference flow" className="block text-sm font-medium text-gray-300 mb-2">
+                Technology
+              </label>
+              <input
+                type="technology"
+                id="technology"
+                {...register("reference flow")}
+                className={`w-full px-4 py-3 bg-gray-900 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors duration-200 ${
+                  errors.name 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : 'border-gray-600 focus:border-blue-500 focus:ring-blue-500'
+                }`}
+                placeholder="Example - Electricity from grid process, transportation service process"
+                disabled={isSubmitting}
+              />
+            </div>
+            <div className='border-b border-gray-700 p-4'>
+              <LocationInput/>
+              </div>
             {/* Table Selection */}
             <div className="border-b border-gray-700 p-4">
               <h3 className="mb-3 text-sm font-medium text-gray-300">Tables & Views</h3>
@@ -85,47 +174,8 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
                   onChange={(value)=> setSelectedTable(value)}
 
                 />
-                {/* <button
-                  onClick={() => setIsTableDropdownOpen(!isTableDropdownOpen)}
-                  className="flex w-full items-center justify-between rounded-md bg-gray-800 px-3 py-2 text-left hover:bg-gray-700 transition-colors"
-                >
-                  <span className="text-sm">{selectedTable}</span>
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-                {isTableDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 z-10 mt-1 rounded-md bg-gray-800 border border-gray-600 shadow-lg">
-                    <div className="py-1">
-                      <button className="block w-full px-3 py-2 text-left text-sm hover:bg-gray-700 transition-colors">
-                        input params
-                      </button>
-                      <button className="block w-full px-3 py-2 text-left text-sm text-gray-400 hover:bg-gray-700 transition-colors">
-                        output params
-                      </button>
-                       <button className="block w-full px-3 py-2 text-left text-sm text-gray-400 hover:bg-gray-700 transition-colors">
-                        process params
-                      </button>
-                    </div>
-                  </div>
-                )} */}
               </div>
             </div>
-
-            {/* Operations */}
-            <div className="border-b border-gray-700 p-4">
-              <div className="space-y-1">
-                {operations.map((operation, index) => (
-                  <button
-                    key={index}
-                    className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-gray-800 transition-colors"
-                  >
-                    <operation.icon className="h-4 w-4 text-gray-400" />
-                    {operation.name}
-                  </button>
-                ))}
-              </div>
-
-            </div>
-
             {/* Table Info */}
             <div className="p-4">
               <div className="mb-4">
@@ -134,7 +184,8 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
               </div>
 
               {/* Columns */}
-              <TableEditor type={selectedTable} process_id={Number(process.id)}/>
+              <EditableTablePopover/>
+              {/* <TableEditor type={selectedTable} process_id={Number(process.id)}/> */}
               {/* <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-300 mb-3">Columns</h4>
                 <div className="space-y-3">
