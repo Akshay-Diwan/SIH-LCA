@@ -171,7 +171,8 @@ const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
       source: String(edge.source),
       target: String(edge.target),
       sourceHandle: edge.sourceHandle,
-      targetHandle: edge.targetHandle
+      targetHandle: edge.targetHandle,
+      type: 'step'
     }})
     setEdges(formatEdges)
   }

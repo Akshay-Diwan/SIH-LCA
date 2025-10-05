@@ -162,19 +162,8 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
             {/* Table Selection */}
             <div className="border-b border-gray-700 p-4">
               <h3 className="mb-3 text-sm font-medium text-gray-300">Tables & Views</h3>
-              <div className="relative">
-                <DropdownInput
-                   name='Table'
-                   options={[
-                    { value: TableType.INPUT, label: 'Input Parameters'},
-                    {value: TableType.PROCESS, label: 'Process Parameters'},
-                    {value: TableType.OUTPUT, label: 'Output Parameters'}
-                  ]}
-                  defaultValue='input_params'
-                  onChange={(value)=> setSelectedTable(value)}
-
-                />
-              </div>
+              {/* <div className="relative">
+              </div> */}
             </div>
             {/* Table Info */}
             <div className="p-4">
@@ -184,7 +173,7 @@ const ProcessDetailPopup: React.FC<SidePopupProps> = ({
               </div>
 
               {/* Columns */}
-              <EditableTablePopover/>
+              <EditableTablePopover process_id={currentProcessid}/>
               {/* <TableEditor type={selectedTable} process_id={Number(process.id)}/> */}
               {/* <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-300 mb-3">Columns</h4>

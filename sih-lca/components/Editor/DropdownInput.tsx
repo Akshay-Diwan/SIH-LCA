@@ -126,7 +126,7 @@ const DropdownInput: React.FC<DropdownInputProps> = ({
       {/* Dropdown trigger */}
       <button
         type="button"
-        className={`relative w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+        className={`relative w-full bg-gray-800 border border-gray-800 rounded-lg px-4 py-3 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
           disabled 
             ? 'opacity-50 cursor-not-allowed' 
             : 'hover:border-gray-600'

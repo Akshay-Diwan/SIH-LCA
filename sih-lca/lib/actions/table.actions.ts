@@ -39,6 +39,15 @@ export const GetTable = async (process_id: number, type: TableType)=>{
     }
     return data
 }
+export const SetTable = async (process_id: number,rows: InputParams[], type: TableType)=> {
+    const supabase =createSupabaseClient()
+    await supabase.from(type).delete().eq("process_id", process_id)
+    const modifiedRows = rows.map(row => {return {...row, process_id: process_id}})
+    const {error, data} = await supabase.from(type).insert(modifiedRows).select()
+    if(error || !data)  {
+        throw new Error(error?.message || `Could not set ${type}`)
+    }
+}
 // export const getAllCompanion = async ({limit = 10, page = 1, subject, topic}:) =>{
 //     const supabase = createSupabaseClient()
 //     console.log("subject : " + subject)

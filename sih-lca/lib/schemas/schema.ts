@@ -53,7 +53,7 @@ export const ProcessLinkSchema = z.object({
 
 // ---------------- Input Params ----------------
 export const InputParamSchema = z.object({
-  id: z.number().int().optional(),
+  id: z.uuid().optional(),
   process_id: z.number().int().default(123),
   type: z.enum(["material", "energy", "auxiliary", "infrastructure"]).default("material"),
   name: z.string().min(1).default("process"),
@@ -71,7 +71,7 @@ export const InputParamSchema = z.object({
 
 // ---------------- Process Params ----------------
 export const ProcessParamSchema = z.object({
-  id: z.number().int().optional(),
+  id: z.uuid().optional(),
   process_id: z.number().int().default(2),
   name: z.string().min(1).default("extraction"),
   value: z.number().default(1),
@@ -85,7 +85,7 @@ export const ProcessParamSchema = z.object({
 
 // ---------------- Output Params ----------------
 export const OutputParamSchema = z.object({
-  id: z.number().int().optional(),
+  id: z.uuid().optional(),
   process_id: z.number().int().default(2),
   type: z.enum(["product", "co-product", "emission_air", "emission_water", "waste"]).default("product"),
   name: z.string().min(1).default("Aluminium"),

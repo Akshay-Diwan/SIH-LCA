@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Edit, Save, X, Plus, Trash2, Settings, Users } from 'lucide-react';
-import { GetTable } from '@/lib/actions/table.actions';
+import { Edit, Save, X, Plus, Trash2, Settings, Users, Table } from 'lucide-react';
+import { GetTable, SetTable } from '@/lib/actions/table.actions';
 import { TableType } from '@/interfaces';
+import DropdownInput from './DropdownInput';
+import {v4 as uuid} from 'uuid'
+import Papa from "papaparse"
 
 interface TableRow {
   id: string;
@@ -11,15 +14,15 @@ interface TableRow {
   department: string;
   status: string;
 }
-interface InputParamsRows {
+interface ParamsRow {
   name: string;
   amount: number;
   unit: string;
-  source: string;
-  location: string;
-  uncertainty_low: number;
-  uncertainty_high: number;
-  allocation_method: string;
+  source?: string;
+  location?: string;
+  uncertainty_low?: number;
+  uncertainty_high?: number;
+  allocation_method?: string;
   notes: string;
 }
 const ParamsFields = ['name','type','amount', 'unit', 'source', 'location', 'uncertainty_low', 'uncertainty_high', 'allocation_method', 'notes']
@@ -27,24 +30,21 @@ interface EditingCell {
   rowId: string;
   column: keyof Omit<TableRow, 'id'>;
 }
+interface EditableTablePopoverProps{
+  process_id: number
+}
 
-const EditableTablePopover: React.FC = () => {
-  const [data, setData] = useState<TableRow[]>([
-    { id: '1', name: 'John Doe', email: 'john@example.com', role: 'Senior Developer', department: 'Engineering', status: 'Active' },
-    { id: '2', name: 'Jane Smith', email: 'jane@example.com', role: 'UI/UX Designer', department: 'Design', status: 'Active' },
-    { id: '3', name: 'Mike Johnson', email: 'mike@example.com', role: 'Project Manager', department: 'Management', status: 'Active' },
-    { id: '4', name: 'Sarah Wilson', email: 'sarah@example.com', role: 'DevOps Engineer', department: 'Engineering', status: 'Inactive' },
-    { id: '5', name: 'Alex Chen', email: 'alex@example.com', role: 'Data Analyst', department: 'Analytics', status: 'Active' },
-    { id: '6', name: 'Emily Brown', email: 'emily@example.com', role: 'Marketing Manager', department: 'Marketing', status: 'Active' },
-  ]);
-
+const EditableTablePopover: React.FC = ({process_id}: EditableTablePopoverProps) => {
+  const [data, setData] = useState<ParamsRow[]>([]);
+  const [file, setFile] = useState(null);
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const [editValue, setEditValue] = useState('');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedTable, setSelectedTable] = useState(TableType.INPUT);
   // Close popover when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -65,17 +65,20 @@ const EditableTablePopover: React.FC = () => {
     };
   }, [isPopoverOpen]);
   useEffect(()=>{
-    GetTable(30,TableType.INPUT)
+    console.log(process_id)
+    GetTable(process_id,selectedTable)
     .then((data)=> {
       setData(data)
       console.log(data)
   })
 
-  }, [])
-  // useEffect(()=>{
-  //   SetTable(30, TableType.INPUT)
-
-  // })
+  }, [selectedTable])
+   useEffect(()=>{
+    console.log("Inside use effect")
+    if(data.length){
+      SetTable(process_id,data, selectedTable)
+    }
+   }, [data])
 
   const startEditing = (rowId: string, column: keyof Omit<TableRow, 'id'>) => {
     const row = data.find(r => r.id === rowId);
@@ -103,19 +106,18 @@ const EditableTablePopover: React.FC = () => {
   };
 
   const addRow = () => {
-    const newId = (Math.max(...data.map(r => parseInt(r.id))) + 1).toString();
     setData(prev => [...prev, { 
-      id: newId, 
-      name: 'New User', 
-      email: 'new@example.com', 
-      role: 'New Role',
-      department: 'Department',
-      status: 'Active'
+      id: uuid(), 
+      name: 'New Parameter', 
+      type: 'none', 
+      amount: 0,
+      unit: 'None'
     }]);
   };
 
-  const deleteRow = (id: string) => {
-    setData(prev => prev.filter(row => row.id !== id));
+  const deleteRow = (name: string) => {
+    setData(prev => prev.filter(row => row.name !== name));
+    
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -125,7 +127,38 @@ const EditableTablePopover: React.FC = () => {
       cancelEdit();
     }
   };
-
+  const handleExportCSV = (filename = "data.csv")=> {
+    const csv = Papa.unparse(data);
+    const blob = new Blob([csv], {type: "text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  const handleImportCSV = ()=> {
+    fileInputRef.current?.click()
+  }
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0]
+    if(selected && selected.type === 'text/csv'){
+      setFile(selected)
+      parseCsvFile(selected)
+    }
+  }
+  const parseCsvFile = (file)=> {
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        setData(results.data.map(result =>{ return {...result, id: uuid()}}));
+        console.log("Parsed CSV data: ", results.data)
+      },  
+    })
+  }
   const getStatusColor = (status: string) => {
     return status === 'Active' ? 'text-green-400' : 'text-red-400';
   };
@@ -218,8 +251,22 @@ const EditableTablePopover: React.FC = () => {
               {/* Popover Header */}
               <div className="bg-gray-700 px-6 py-4 border-b border-gray-600 flex justify-between items-center">
                 <div>
-                  <h3 className="text-xl font-bold text-white">Employee Management</h3>
-                  <p className="text-gray-300 text-sm">Edit, add, or remove employee information</p>
+                                    <DropdownInput
+                   name='Table'
+                   options={[
+                    { value: TableType.INPUT, label: 'Input Parameters'},
+                    {value: TableType.PROCESS, label: 'Process Parameters'},
+                    {value: TableType.OUTPUT, label: 'Output Parameters'}
+                  ]}
+                  defaultValue='input_params'
+                  onChange={(value)=> setSelectedTable(value)}
+
+                />
+                  <p className="text-gray-300 text-sm">Edit, add, or remove parameters</p>
+                  
+                </div>
+                <div>
+
                 </div>
                 <div className="flex gap-2 items-center">
                   <div className="relative">
@@ -234,10 +281,11 @@ const EditableTablePopover: React.FC = () => {
                     {showActions && (
                       <div className="absolute top-12 right-0 bg-gray-700 border border-gray-600 rounded-lg shadow-xl p-3 z-10 w-48">
                         <div className="space-y-1">
-                          <button className="w-full text-left px-3 py-2 rounded hover:bg-gray-600 transition-colors text-sm">
+                          <button className="w-full text-left px-3 py-2 rounded hover:bg-gray-600 transition-colors text-sm" onClick={handleExportCSV}>
                             Export CSV
                           </button>
-                          <button className="w-full text-left px-3 py-2 rounded hover:bg-gray-600 transition-colors text-sm">
+                          <button className="w-full text-left px-3 py-2 rounded hover:bg-gray-600 transition-colors text-sm" onClick={handleImportCSV}>
+                            <input type="file" name="csv-upload" accept='.csv' id="csv-upload" className="hidden" ref={fileInputRef} onChange={handleFileChange}/>
                             Import CSV
                           </button>
                           <button className="w-full text-left px-3 py-2 rounded hover:bg-gray-600 transition-colors text-sm">
@@ -257,7 +305,7 @@ const EditableTablePopover: React.FC = () => {
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
-                    Add Employee
+                    Add Parameter
                   </button>
                   
                   <button
@@ -373,9 +421,9 @@ const EditableTablePopover: React.FC = () => {
                         {/* Actions Column */}
                         <td className="px-4 py-3">
                           <button
-                            onClick={() => deleteRow(row.id)}
+                            onClick={() => deleteRow(row.name)}
                             className="p-1 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded transition-colors"
-                            title="Delete Employee"
+                            title="Delete Parameter"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -390,7 +438,7 @@ const EditableTablePopover: React.FC = () => {
               <div className="bg-gray-700 px-6 py-3 border-t border-gray-600">
                 <div className="flex justify-between items-center text-sm text-gray-300">
                   <div>
-                    Showing {data.length} employees • Click any cell to edit • Enter to save, Esc to cancel
+                    Showing {data.length} parameters • Click any cell to edit • Enter to save, Esc to cancel
                   </div>
                   <div>
                     Last updated: {new Date().toLocaleTimeString()}

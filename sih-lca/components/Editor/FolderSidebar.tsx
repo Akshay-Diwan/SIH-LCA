@@ -44,8 +44,8 @@ const ProductSystemItem = ({productSystem, processes, setProcesses, SaveEditing}
   const createProcess = async (process: Process)=> {
         // setProcess(prev => [...prev, current])
     try{
-      await SaveEditing()
       await SaveProcess(process)
+      await SaveEditing()
     }
     catch(err){
       console.log(err)
